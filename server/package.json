@@ -1,7 +1,7 @@
 {
-  "name": "walky-takly-server",
+  "name": "walkie-talkie-server",
   "version": "1.0.0",
-  "description": "Backend for Walky Takly walkie-talkie app",
+  "description": "Backend for Walkie Talkie global radio app",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
