@@ -6,6 +6,10 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
+app.get('/', (req, res) => {
+  res.send('<h1>📡 Walkie Talkie Backend is ONLINE</h1><p>Global Radio Hub is active and ready for signals.</p>');
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {

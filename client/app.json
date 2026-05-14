@@ -44,8 +44,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "walky-takly-id"
+        "projectId": "70ada1d3-b0db-4121-871b-6063f0a706f7"
       }
-    }
+    },
+    "owner": "pawan_patil"
   }
 }
