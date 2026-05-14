@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image, Modal, FlatList, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Mic, Globe, X, Hash, Dices, Search } from 'lucide-react-native';
@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 export default function SplashScreen() {
   const [nickname, setNickname] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('Initializing Systems...');
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -19,29 +21,47 @@ export default function SplashScreen() {
   }, []);
 
   const checkNickname = async () => {
+    const socket = socketService.getSocket();
+    
+    setIsConnected(socket.connected);
+
+    socket.on('connect', () => {
+      setIsConnected(true);
+      setStatusMessage('Connected to Global Hub');
+    });
+
+    socket.on('connect_error', (err) => {
+      setIsConnected(false);
+      setStatusMessage('Connection Error');
+      // Show alert to debug URL issues on device
+      Alert.alert(
+        'Signal Lost',
+        `Could not connect to ${socketService.getSocket().io.uri}. \n\nError: ${err.message}`,
+        [{ text: 'Retry', onPress: () => socket.connect() }]
+      );
+    });
+
+    socket.on('active-frequencies', (frequencies: string[]) => {
+      setActiveFrequencies(frequencies);
+      setIsScanning(false);
+    });
+
     try {
       const storedNickname = await SecureStore.getItemAsync('nickname');
       if (storedNickname) {
         setNickname(storedNickname);
-        // Automatically proceed if nickname exists
+        setStatusMessage(`Welcome back, ${storedNickname}`);
         setTimeout(() => {
           router.replace('/home');
-        }, 1500);
+        }, 2000);
+      } else {
+        setStatusMessage('System Ready');
       }
     } catch (e) {
       console.error(e);
     } finally {
       setIsLoaded(true);
     }
-
-    const socket = socketService.getSocket();
-    socket.on('active-frequencies', (frequencies: string[]) => {
-      console.log('--- SCAN RESULTS ---');
-      console.log('Active Frequencies found:', frequencies);
-      console.log('--------------------');
-      setActiveFrequencies(frequencies);
-      setIsScanning(false);
-    });
   };
 
   const startScan = () => {
@@ -99,6 +119,11 @@ export default function SplashScreen() {
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
+
+        <View style={styles.statusContainer}>
+          <View style={[styles.statusDot, { backgroundColor: isConnected ? '#00FF88' : '#FFBB00' }]} />
+          <Text style={styles.statusText}>{statusMessage}</Text>
+        </View>
 
         <TouchableOpacity
           style={styles.discoverButton}
@@ -263,6 +288,29 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 8,
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    color: '#888',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   discoverButton: {
     marginTop: 20,
