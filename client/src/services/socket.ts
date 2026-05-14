@@ -1,9 +1,8 @@
 import { io } from 'socket.io-client';
 
-// For local development, use your computer's IP address.
-// On physical devices, 'localhost' will not work.
-// Replace with your actual IP if testing on a real device.
-const SOCKET_URL = 'http://10.226.46.252:3000'; // Updated to your computer's local IP
+// For cloud deployment, use your Render URL.
+// Replace this with your actual Render URL if it differs from the one below.
+const SOCKET_URL = 'https://walkie-talkie-server.onrender.com';
 
 class SocketService {
   socket: any;
