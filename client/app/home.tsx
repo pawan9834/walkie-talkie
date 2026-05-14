@@ -15,6 +15,8 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [scanModalVisible, setScanModalVisible] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('🛰️ Searching for Signal...');
   const router = useRouter();
 
   useEffect(() => {
@@ -31,10 +33,21 @@ export default function HomeScreen() {
     }
 
     const socket = socketService.getSocket();
+    
+    setIsConnected(socket.connected);
+    if (socket.connected) setStatusMessage('📡 Signal: Online');
+
+    socket.on('connect', () => {
+      setIsConnected(true);
+      setStatusMessage('📡 Signal: Online');
+    });
+
+    socket.on('connect_error', () => {
+      setIsConnected(false);
+      setStatusMessage('🛰️ Reconnecting...');
+    });
+
     socket.on('active-frequencies', (frequencies: string[]) => {
-      console.log('--- SCAN RESULTS ---');
-      console.log('Active Frequencies found:', frequencies);
-      console.log('--------------------');
       setActiveFrequencies(frequencies);
       setIsScanning(false);
     });
@@ -75,6 +88,12 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Connection Status Banner */}
+      <View style={[styles.statusBanner, { backgroundColor: isConnected ? '#00FF8815' : '#FFBB0015' }]}>
+        <View style={[styles.statusDot, { backgroundColor: isConnected ? '#00FF88' : '#FFBB00' }]} />
+        <Text style={[styles.statusText, { color: isConnected ? '#00FF88' : '#FFBB00' }]}>{statusMessage}</Text>
+      </View>
+
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Echo Base,</Text>
@@ -489,5 +508,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#FF4444',
     marginLeft: 4,
+  },
+  statusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    gap: 8,
+    marginBottom: 5,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
 });
