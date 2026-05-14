@@ -1,7 +1,6 @@
 import { io } from 'socket.io-client';
 
 // For cloud deployment, use your Render URL.
-// Replace this with your actual Render URL if it differs from the one below.
 const SOCKET_URL = 'https://walkie-talkie-server.onrender.com';
 
 class SocketService {
@@ -23,7 +22,7 @@ class SocketService {
     });
 
     this.socket.on('connect_error', (error: any) => {
-      console.error('⚠️ Connection Error! Make sure your IP is correct and phone is on the same Wi-Fi:', error.message);
+      console.error('⚠️ Connection Error:', error.message);
     });
 
     return this.socket;
@@ -45,7 +44,6 @@ class SocketService {
   }
 
   sendAudio(frequency: string, audioChunk: string, senderNickname: string) {
-    console.log(`📤 Sending audio chunk (${Math.round(audioChunk.length / 1024)} KB) to frequency: ${frequency}`);
     this.socket?.emit('audio-data', { frequency, audioChunk, senderNickname });
   }
 
